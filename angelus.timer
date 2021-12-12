@@ -1,0 +1,9 @@
+[Unit]
+Description=Schedule Angelus and examination of conscience messages daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
