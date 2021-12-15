@@ -10,13 +10,26 @@
 from ctypes.util import find_library
 from ctypes import *
 import json
+import os
 import sys
 import datetime as dtime
+import socket
 
 # load secrets
 decoder = json.JSONDecoder()
 with open('secrets.json', 'r') as f
     secrets = f.read().replace('\n','')
+SOCK_PATH = "./angelus.sock"
+BUFSIZE = 4096
+try:
+    os.unlink(SOCK_PATH)
+except OSError:
+    if os.path.exists(SOCK_PATH):
+        raise OSError("Socket already exists!")
+
+sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+sock.connect(SOCK_PATH)
+code = sock.recv(BUFSIZE).decode(encoding='utf-8')[:6]
 
 # load shared library
 tdjson_path = find_library('tdjson') or 'tdjson.dll'
@@ -131,12 +144,19 @@ while True:
 
             # enter phone number to log in
             if auth_state['@type'] == 'authorizationStateWaitPhoneNumber':
-                phone_number = input('Please enter your phone number: ')
-                td_send({'@type': 'setAuthenticationPhoneNumber', 'phone_number': phone_number})
+                td_send({'@type': 'setAuthenticationPhoneNumber', 'phone_number': secrets['phone_number']})
 
             # wait for authorization code
             if auth_state['@type'] == 'authorizationStateWaitCode':
-                code = input('Please enter the authentication code you received: ')
+                try:
+                    os.unlink(SOCK_PATH)
+                except OSError:
+                    if os.path.exists(SOCK_PATH):
+                        raise OSError("Socket already exists!")
+
+                sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+                sock.bind(SOCK_PATH)
+                code = sock.recv(BUFSIZE).decode(encoding='utf-8')[:6]
                 td_send({'@type': 'checkAuthenticationCode', 'code': code})
 
             # wait for first and last name for new users
@@ -153,3 +173,8 @@ while True:
         # handle an incoming update or an answer to a previously sent request
         print(str(event).encode('utf-8'))
         sys.stdout.flush()
+
+
+sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+sock.connect(SOCK_PATH)
+code = sock.recv(BUFSIZE).decode(encoding='utf-8')[:6]
