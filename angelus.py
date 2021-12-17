@@ -17,28 +17,17 @@ import socket
 
 # load secrets
 decoder = json.JSONDecoder()
-with open('secrets.json', 'r') as f
+with open('secrets.json', 'r') as f:
     SECRETS = f.read().replace('\n','')
 SOCK_PATH = "./angelus.sock"
 TDJSON_PATH = "/home/aquohn/Software/td/tdlib/lib/libtdjson.so"
 BUFSIZE = 4096
-def unlink_sock(path):
-    try:
-        os.unlink(path)
-    except OSError:
-        if os.path.exists(path):
-            raise OSError(f"Something else already exists at {path}!")
-
-unlink_sock(SOCK_PATH)
-sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-sock.connect(SOCK_PATH)
-code = sock.recv(BUFSIZE).decode(encoding='utf-8')[:6]
 
 # load shared library
 tdjson = CDLL(TDJSON_PATH)
 
 # load TDLib functions from shared library
-def load_tdlib_func(attr, restypes, argtypes):
+def load_tdlib_func(attr, restype, argtypes):
     funcptr = getattr(tdjson, attr)
     funcptr.restype = restype
     funcptr.argtypes = argtypes
@@ -85,15 +74,14 @@ def td_receive():
     return result
 
 # start the client by sending request to it
-td_send({'@type': 'getAuthorizationState', '@extra': 1.01234})
+td_send({'@type': 'getAuthorizationState'})
 
 # compute unix timestamps to send messages tomorrow
-tmrw = dtime.datetime.now() + dtime.timedelta(day=1)
+tmrw = dtime.datetime.now() + dtime.timedelta(days=1)
 def time_to_epoch(dt, h, m):
-    ndt = deepcopy(dt)
-    ndt.hour = h
-    ndt.minute = m
-    return ndt
+    ndt = dtime.datetime(dt.year, dt.month, dt.day,
+            hour=h, minute=m)
+    return ndt.timestamp()
 
 morning_angelus = int(time_to_epoch(tmrw, 6, 0))
 afternoon_angelus = int(time_to_epoch(tmrw, 12, 0))
