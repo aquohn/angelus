@@ -1,7 +1,0 @@
-[Unit]
-Description=Schedule Angelus and examination of conscience messages daily
-After=network.target
-
-[Service]
-Type=oneshot
-ExecStart=

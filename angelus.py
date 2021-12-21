@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 # Adapted from tdjson_example.py, which is copyright Aliaksei Levin (levlam@telegram.org), 
 # Arseny Smirnov (arseny30@gmail.com), Pellegrino Prevete (pellegrinoprevete@gmail.com)
 # 2014-2021. Source: https://github.com/tdlib/td/blob/master/example/python/tdjson_example.py
@@ -18,11 +20,13 @@ import socket
 
 # load secrets
 decoder = json.JSONDecoder()
-with open('secrets.json', 'r') as f:
+try:
+    secrets_path, sock_path, tdjson_path = sys.argv[1:4]
+except ValueError:
+    sys.exit(f"Usage: {__file__} <path to secrets JSON> <path to input socket> <path to libtdjson.so>")
+with open(secrets_path, 'r') as f:
     secret_str = f.read().replace('\n','')
     SECRETS = decoder.decode(secret_str)
-SOCK_PATH = "./angelus.sock"
-TDJSON_PATH = "/home/aquohn/Software/td/tdlib/lib/libtdjson.so"
 BUFSIZE = 4096
 RAND_UPPER, RAND_LOWER = 0, 2**32
 TOL_SECS = 3 * 60
@@ -70,7 +74,7 @@ def unlink_sock(path):
             raise RuntimeError(f"Something else already exists at {path}!")
 
 # load shared library
-tdjson = CDLL(TDJSON_PATH)
+tdjson = CDLL(tdjson_path)
 
 # load TDLib functions from shared library
 def load_tdlib_func(attr, restype, argtypes):
@@ -203,9 +207,9 @@ while True:
 
             # wait for authorization code
             if auth_state['@type'] == 'authorizationStateWaitCode':
-                unlink_sock(SOCK_PATH)
+                unlink_sock(sock_path)
                 sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-                sock.bind(SOCK_PATH)
+                sock.bind(sock_path)
                 code = sock.recv(BUFSIZE).decode(encoding='utf-8')[:6]
                 td_send({'@type': 'checkAuthenticationCode', 'code': code})
 

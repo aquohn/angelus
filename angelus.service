@@ -1,0 +1,7 @@
+[Unit]
+Description=Schedule Angelus and examination of conscience messages daily
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/aquohn/angelus/angelus.py /home/aquohn/angelus/secrets.json /home/aquohn/angelus/angelus.sock /home/aquohn/Software/td/tdlib/lib/libtdjson.so
