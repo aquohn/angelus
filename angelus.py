@@ -21,7 +21,7 @@ import socket
 # load secrets
 decoder = json.JSONDecoder()
 try:
-    secrets_path, sock_path, tdjson_path = sys.argv[1:4]
+    secrets_path, sock_path, tdjson_path, data_path = sys.argv[1:5]
 except ValueError:
     sys.exit(f"Usage: {__file__} <path to secrets JSON> <path to input socket> <path to libtdjson.so>")
 with open(secrets_path, 'r') as f:
@@ -186,7 +186,7 @@ while True:
             # and use them in the setTdlibParameters call
             if auth_state['@type'] == 'authorizationStateWaitTdlibParameters':
                 td_send({'@type': 'setTdlibParameters', 'parameters': {
-                                                       'database_directory': 'data',
+                                                       'database_directory': data_path,
                                                        'use_message_database': True,
                                                        'use_secret_chats': True,
                                                        'api_id': SECRETS['api_id'],
