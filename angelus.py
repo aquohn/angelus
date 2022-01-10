@@ -23,7 +23,7 @@ decoder = json.JSONDecoder()
 try:
     secrets_path, sock_path, tdjson_path, data_path = sys.argv[1:5]
 except ValueError:
-    sys.exit(f"Usage: {__file__} <path to secrets JSON> <path to input socket> <path to libtdjson.so>")
+    sys.exit(f"Usage: {__file__} <path to secrets JSON> <path to input socket> <path to libtdjson.so> <path to database folder>")
 with open(secrets_path, 'r') as f:
     secret_str = f.read().replace('\n','')
     SECRETS = decoder.decode(secret_str)
@@ -216,10 +216,11 @@ while True:
             if auth_state['@type'] == 'authorizationStateReady':
                 auth_ready = True
 
-            print(event)
             continue
 
         if not auth_ready:
+            if event.get('@type', None) in {'updateAuthorizationState', 'error'}:
+                print(event)
             continue
 
         sched_msgs = wait_extra(get_sched()).get('messages', None)
