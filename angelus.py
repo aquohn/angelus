@@ -139,25 +139,33 @@ noon_angelus = int(time_to_epoch(tmrw, 12, 0))
 evening_angelus = int(time_to_epoch(tmrw, 18, 0))
 examen = int(time_to_epoch(tmrw, 22, 30))
 
-def sched_msg(text, timestamp):
+def sched_msg(text, timestamp, chat_id=SECRETS['channel_id']):
     extra = randint(RAND_UPPER, RAND_LOWER)
-    td_send({'@type': 'sendMessage', 'chat_id': SECRETS['channel_id'], 
+    td_send({'@type': 'sendMessage', 'chat_id': chat_id, 
         'options': {'@type': 'messageSendOptions', 'scheduling_state': 
             {'@type': 'messageSchedulingStateSendAtDate', 'send_date': timestamp} }, 
         'input_message_content': {'@type': 'inputMessageText',
             'text': {'@type': 'formattedText', 'text': text}},
         '@extra': extra})
+
+    td_send({'@type': 'loadChats', 'limit': 10, 'chat_list': None})
     
 
-def msg_before(timestamp): 
+def msg_before(timestamp, chat_id=SECRETS['channel_id']): 
     extra = randint(RAND_UPPER, RAND_LOWER)
-    td_send({'@type': 'getChatMessageByDate', 'chat_id': SECRETS['channel_id'], 
+    td_send({'@type': 'getChatMessageByDate', 'chat_id': chat_id, 
         'date': timestamp, '@extra': extra})
     return extra
 
-def get_sched():
+def get_sched(chat_id=SECRETS['channel_id']):
     extra = randint(RAND_UPPER, RAND_LOWER)
-    td_send({'@type': 'getChatScheduledMessages', 'chat_id': SECRETS['channel_id'], 
+    td_send({'@type': 'getChatScheduledMessages', 'chat_id': chat_id, 
+        '@extra': extra})
+    return extra
+
+def load_chats(limit=10, chat_list=None):
+    extra = randint(RAND_UPPER, RAND_LOWER)
+    td_send({'@type': 'loadChats', 'limit': limit, 'chat_list': chat_list, 
         '@extra': extra})
     return extra
 
@@ -224,7 +232,10 @@ while True:
             continue
 
         sched_msgs = wait_extra(get_sched()).get('messages', None)
-        # if not sched_msgs:
+        while not sched_msgs:
+            loaded = wait_extra(load_chats())
+            sched_msgs = wait_extra(get_sched()).get('messages', None)
+
         pending_scheds = {morning_angelus: ANGELUS, noon_angelus: ANGELUS, evening_angelus: ANGELUS,
                 examen: EXAMEN}
         for msg in sched_msgs:
