@@ -1,0 +1,9 @@
+[Unit]
+Description=Schedule Mass booking reminder monthly
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/aquohn/angelus/mass.py /home/aquohn/angelus/secrets.json /home/aquohn/angelus/angelus.sock /home/aquohn/Software/td/tdlib/lib/libtdjson.so /home/aquohn/angelus/data
+Restart=on-failure
+RestartSec=1min

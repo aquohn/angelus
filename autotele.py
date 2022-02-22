@@ -120,7 +120,11 @@ class Autotele(object):
         self.td_receive = td_receive
         self.td_execute = td_execute
 
-    def sched_msg(self, text, timestamp, chat_id):
+    def sched_msg(self, msg, timestamp, chat_id):
+        try:
+            text, entities = msg
+        except ValueError:
+            text, entities = msg, []
         extra = randint(RAND_UPPER, RAND_LOWER)
         self.td_send(
             {
@@ -135,7 +139,7 @@ class Autotele(object):
                 },
                 "input_message_content": {
                     "@type": "inputMessageText",
-                    "text": {"@type": "formattedText", "text": text},
+                    "text": {"@type": "formattedText", "text": text, "entities": entities},
                 },
                 "@extra": extra,
             }
