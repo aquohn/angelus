@@ -15,8 +15,13 @@ from random import randint
 import json
 import os
 import sys
-import datetime as dtime
 import socket
+import datetime as dtime
+import dateparser as dp
+
+BUFSIZE = 4096
+RAND_UPPER, RAND_LOWER = 0, 2**32
+TOL_SECS = 3 * 60
 
 # load secrets
 decoder = json.JSONDecoder()
@@ -27,9 +32,13 @@ except ValueError:
 with open(secrets_path, 'r') as f:
     secret_str = f.read().replace('\n','')
     SECRETS = decoder.decode(secret_str)
-BUFSIZE = 4096
-RAND_UPPER, RAND_LOWER = 0, 2**32
-TOL_SECS = 3 * 60
+
+DP_SETTINGS = {'DATE_ORDER': 'DMY', 'TIMEZONE': 'Singapore'}
+custom_date = None
+try:
+    custom_date = dp.parse(sys.argv[5], settings=DP_SETTINGS)
+except IndexError:
+    pass
 
 ANGELUS = """
 The Angel of the Lord declared to Mary: And she conceived of the Holy Spirit. Hail Mary...
@@ -127,17 +136,20 @@ def td_receive():
 td_send({'@type': 'getAuthorizationState'})
 
 # compute unix timestamps to send messages tomorrow
-sgtz = dtime.timezone(dtime.timedelta(hours=8)) # ensure timezone is correct
-tmrw = dtime.datetime.now(sgtz) + dtime.timedelta(days=1)
+if custom_date is None:
+    sgtz = dtime.timezone(dtime.timedelta(hours=8)) # ensure timezone is correct
+    target_date = dtime.datetime.now(sgtz) + dtime.timedelta(days=1)
+else:
+    target_date = custom_date
 def time_to_epoch(dt, h, m):
     ndt = dtime.datetime(dt.year, dt.month, dt.day,
             hour=h, minute=m)
     return ndt.timestamp()
 
-morning_angelus = int(time_to_epoch(tmrw, 6, 0))
-noon_angelus = int(time_to_epoch(tmrw, 12, 0))
-evening_angelus = int(time_to_epoch(tmrw, 18, 0))
-examen = int(time_to_epoch(tmrw, 22, 30))
+morning_angelus = int(time_to_epoch(target_date, 6, 0))
+noon_angelus = int(time_to_epoch(target_date, 12, 0))
+evening_angelus = int(time_to_epoch(target_date, 18, 0))
+examen = int(time_to_epoch(target_date, 22, 30))
 
 def sched_msg(text, timestamp, chat_id=SECRETS['channel_id']):
     extra = randint(RAND_UPPER, RAND_LOWER)
@@ -149,8 +161,8 @@ def sched_msg(text, timestamp, chat_id=SECRETS['channel_id']):
         '@extra': extra})
 
     td_send({'@type': 'loadChats', 'limit': 10, 'chat_list': None})
+    return extra
     
-
 def msg_before(timestamp, chat_id=SECRETS['channel_id']): 
     extra = randint(RAND_UPPER, RAND_LOWER)
     td_send({'@type': 'getChatMessageByDate', 'chat_id': chat_id, 
@@ -169,11 +181,12 @@ def load_chats(limit=10, chat_list=None):
         '@extra': extra})
     return extra
 
-def wait_extra(extra):
+def wait_extra(extra, show=True):
     while True:
         event = td_receive()
         if event and event.get('@extra', None) == extra:
-            print(event)
+            if show:
+                print(event)
             return event
 
 auth_ready = False
@@ -251,8 +264,9 @@ while True:
             for rmtime in rmlist:
                 pending_scheds.pop(rmtime)
 
+        print(pending_scheds)
         for time, msg in pending_scheds.items():
-            sched_msg(msg, time)
+            wait_extra(sched_msg(msg, time))
 
         break
 
