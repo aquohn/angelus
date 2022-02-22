@@ -42,6 +42,7 @@ No matter how well or badly your day has gone, God loves you with an eternal lov
 """
 
 AT = Autotele(sys.argv)
+AT.authenticate()
 # compute unix timestamps to send messages tomorrow
 if AT.custom_date is None:
     sgtz = dtime.timezone(dtime.timedelta(hours=8))  # ensure timezone is correct

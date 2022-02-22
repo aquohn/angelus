@@ -88,37 +88,37 @@ class Autotele(object):
                 result = json.loads(result.decode("utf-8"))
             return result
 
-            c_on_log_message_callback = _td_log_message_callback_type(
-                on_log_message_callback
-            )
-            _td_set_log_message_callback(2, c_on_log_message_callback)
+        c_on_log_message_callback = _td_log_message_callback_type(
+            on_log_message_callback
+        )
+        _td_set_log_message_callback(2, c_on_log_message_callback)
 
-            # setting TDLib log verbosity level to 1 (errors)
-            td_execute(
-                {
-                    "@type": "setLogVerbosityLevel",
-                    "new_verbosity_level": 1,
-                    "@extra": 1.01234,
-                }
-            )
+        # setting TDLib log verbosity level to 1 (errors)
+        td_execute(
+            {
+                "@type": "setLogVerbosityLevel",
+                "new_verbosity_level": 1,
+                "@extra": 1.01234,
+            }
+        )
 
-            # create client
-            client_id = _td_create_client_id()
+        # create client
+        client_id = _td_create_client_id()
 
-            # simple wrappers for client usage
-            def td_send(query):
-                query = json.dumps(query).encode("utf-8")
-                _td_send(client_id, query)
+        # simple wrappers for client usage
+        def td_send(query):
+            query = json.dumps(query).encode("utf-8")
+            _td_send(client_id, query)
 
-            def td_receive():
-                result = _td_receive(1.0)
-                if result:
-                    result = json.loads(result.decode("utf-8"))
-                return result
+        def td_receive():
+            result = _td_receive(1.0)
+            if result:
+                result = json.loads(result.decode("utf-8"))
+            return result
 
-            self.td_send = td_send
-            self.td_receive = td_receive
-            self.td_execute = td_execute
+        self.td_send = td_send
+        self.td_receive = td_receive
+        self.td_execute = td_execute
 
     def sched_msg(self, text, timestamp, chat_id):
         extra = randint(RAND_UPPER, RAND_LOWER)
