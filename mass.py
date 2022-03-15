@@ -5,6 +5,7 @@
 from autotele import Autotele, time_to_epoch, TOL_SECS
 import sys
 import datetime as dtime
+from time import sleep
 
 MASS_BOOKING = """
 Dear brothers and sisters, booking for Mass begins today at https://mycatholic.sg\n\nChurches with Mass Booking Time starting at 9am\n- Church of the Holy Trinity\n- Church of St Michael\n- St Mary of the Angels\n- Church of the Holy Spirit\n- Church of St Stephen\n- Church of Sts Peter and Paul\n- St Anne's Church\n- Church of St Alphonsus (Novena)\n- Church of Our Lady of Perpetual Succour\n- St Joseph Church (Victoria Street)\n- Cathedral of the Good Shepherd\n \nChurches with Mass Booking Time starting at 12pm\n- Church of Our Lady of Lourdes\n- Church of Christ the King\n- Immaculate Heart of Mary\n- Church of Divine Mercy\n- Church of St Bernadette\n- Church of St Francis of Assisi\n- St Joseph's Church (Bukit Timah)\n- Church of St Francis Xavier\n- Church of the Risen Christ\n- Blessed Sacrament Church\n- Church of St Vincent de Paul\n\nChurches with Mass Booking Time starting at 3pm\n- Church of Our Lady Queen of Peace\n- Church of the Holy Cross\n- Church of Our Lady Star of the Sea (OLSS)\n- Church of St Anthony\n- Church of St Ignatius\n- Church of the Holy Family\n- Church of the Sacred Heart\n- Church of the Transfiguration\n- Church of the Nativity of the Blessed Virgin Mary\n- Church of St Teresa\n\nJesus waits for each one of us in the tabernacle. Let's take each opportunity we can get to receive Our Blessed Lord!
@@ -63,3 +64,4 @@ pending_scheds = {
     int(dt.timestamp()): (MASS_BOOKING, MASS_BOOKING_ENTITIES) for dt in sched_dts
 }
 AT.schedule(pending_scheds, AT.secrets['legion_channel'])
+sleep(5)

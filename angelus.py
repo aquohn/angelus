@@ -5,6 +5,7 @@
 from autotele import Autotele, time_to_epoch, TOL_SECS
 import sys
 import datetime as dtime
+from time import sleep
 
 ANGELUS = """
 The Angel of the Lord declared to Mary: And she conceived of the Holy Spirit. Hail Mary...
@@ -61,3 +62,4 @@ pending_scheds = {
     examen: EXAMEN,
 }
 AT.schedule(pending_scheds, AT.secrets['angelus_channel'])
+sleep(5)
